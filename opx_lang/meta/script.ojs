@@ -1,0 +1,36 @@
+//**************************************************************************
+var sScriptName = "Foobar";
+var sVersion = "0.14";
+//**************************************************************************
+writeln("Executing script " + sScriptName + " in version " + sVersion + "... ");
+//**************************************************************************
+
+/**
+ * Super nice function
+ */
+function DoSth() {
+	var schema = "opxXmlSchema".get("Tralala");
+	var soapURL = new opxSoapUrl("NAME", "NiceName", "DEFAULT_USERNAME", "DEV");
+
+	slWebServiceHandler.exportWebDocument(
+		soapURL,
+		"SLWebService",
+		schema.getXmlType("SLRequest"),
+		schema.getXmlType("SLResponse"),
+		"",
+		true);
+
+	writeln("#123 - Coolio");
+}
+
+/**
+ * Does some calculations and stuff
+ * @param arg1 {string} Foo
+ * @param arg2 {any} Bar
+ * @return {boolean} Always false
+ */
+method foo on DoSth(arg1, arg2) {
+    return false;
+}
+
+

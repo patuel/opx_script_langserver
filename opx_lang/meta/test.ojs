@@ -1,0 +1,19 @@
+/**
+ * @foo
+ * @tracker BEGPM-100
+ * @return {foo} Hello
+ */
+function test() {
+    return "lol";
+}
+
+method test on foo(_XXX) {
+    return (0+1).toString() + "Foo";
+    return {
+        "Foo",
+        "bar",
+        _XXX
+    };
+}
+
+"test"

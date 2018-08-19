@@ -1,0 +1,7 @@
+/* Scanner 
+ *  
+ */
+
+class Scanner {
+    
+}

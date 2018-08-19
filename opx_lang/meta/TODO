@@ -1,0 +1,68 @@
+TODO:
+
+#function-overload-declaration
+    #method-declaration
+    #function-declaration
+#namespace-declaration
+    #declaration
+#import-equals-declaration
+    #declaration
+#import-declaration
+    #declaration
+#export-declaration
+    #declaration
+#template
+    #expression
+
+
+add support for switch-case expressions (with v1 specialities)
+add where/order-by support in #for-loop
+
+
+#expression-operators also have order-by and where operators, try
+    to put them as a operator for loops only
+
+----------------------
+
+LEFT:
+
+#regex
+#regexp
+#regex-character-class
+
+#cast
+
+#switch-statement
+#case-clause
+#switch-block
+#switch-expression
+
+#type-parameters
+#type-name
+#type-tuble
+#type-function-return-type
+#type-operators
+#type-fn-type-parameters
+#type-paren-or-function-parameters
+#type-builtin-literals
+#type-primitive
+
+#type
+#type-annotation
+#type-predicate-operator
+#return-type
+
+#parameter-object-binding-pattern // object-literals do not exist in ojs
+#decl-block                       // object-literals do not exist in ojs
+
+#indexer-mapped-type-declaration
+#indexer-declaration
+
+#type-object-members
+#type-object
+
+#decorator
+
+#object-binding-pattern
+#object-binding-element-propertyName
+#object-binding-element

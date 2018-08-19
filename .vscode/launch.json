@@ -1,0 +1,68 @@
+// A launch configuration that compiles the extension and then opens it inside a new window
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "extensionHost",
+			"request": "launch",
+			"name": "Launch Client",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+			"stopOnEntry": false,
+			"sourceMaps": true,
+			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
+			"preLaunchTask": "npm: watch:client"
+		},
+		{
+			"type": "node",
+			"request": "attach",
+			"name": "Attach to Server",
+			"address": "localhost",
+			"protocol": "inspector",
+			"port": 16009,
+			"sourceMaps": true,
+			"timeout": 30000,
+			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+		},
+		{
+			"name": "Language Server E2E Test",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--extensionTestsPath=${workspaceRoot}/client/out/test",
+				"${workspaceRoot}/client/testFixture"
+			],
+			"stopOnEntry": false,
+			"sourceMaps": true,
+			"outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "OJS Language Debug",
+			// "args": ["${workspaceRoot}/server/src/ojs/test.ts", "-f", "${workspaceRoot}/opx_lang/meta/script.ojs"],
+			"args": [
+				"${workspaceRoot}/server/src/ojs/test.ts",
+				"-f",
+				"C:/repos/opx/scripts/B_INF_JS_COLOR_THEME.ojs"
+			],
+			"runtimeArgs": [
+				"--nolazy", "-r", "ts-node/register"
+			],
+			// "preLaunchTask": "npm: watch:language",
+			// "program": "",
+			"sourceMaps": true,
+			"cwd": "${workspaceRoot}",
+			"protocol": "inspector"
+			// "outFiles": ["${workspaceRoot}/ojs/out/**/*.js"]
+		}
+	],
+	"compounds": [
+		{
+			"name": "Client + Server",
+			"configurations": ["Launch Client", "Attach to Server"]
+		}
+	]
+}
