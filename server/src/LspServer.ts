@@ -9,7 +9,12 @@ import {
     DocumentSymbolParams,
     SymbolInformation,
     Range,
-    SymbolKind
+    SymbolKind,
+    Hover,
+    TextDocumentPositionParams,
+    DidChangeConfigurationParams,
+    RemoteClient,
+    DidChangeConfigurationNotification
 } from "vscode-languageserver";
 
 import { TextDocument } from "./TextDocument";
@@ -17,32 +22,46 @@ import { ILogger } from "./Logger";
 
 import Tokenizer from "./ojs/Tokenizer";
 import { Token } from "./ojs/Token";
+import * as request from "request";
+import { OpxLspSettings } from "./settings/OpxLspSettings";
 
 export default class LspServer {
     //private initializeParams: InitializeParams;
     private initializeResult: InitializeResult;
 
     private openedDocumentUris = new Map<string, TextDocument>();
+    private hasConfigurationCapability = false;
+    private defaultConfiguration: OpxLspSettings = {
+        interfaceUrl: null,
+        interfaceUser: "",
+        interfacePass: ""
+    };
+    // @ts-ignore
+    private configuration: OpxLspSettings = this.defaultConfiguration;
 
     private activated: () => void;
     private activation = new Promise<void>((resolve) => {
         this.activated = resolve;
     })
 
-    constructor(private logger: ILogger) {
+    constructor(private client: RemoteClient, private logger: ILogger) {
 
     }
 
     public async initialize(params: InitializeParams): Promise<InitializeResult> {
         this.logger.log("Initialize", params);
-        
+
+        const capabilities = params.capabilities;
+
+        this.hasConfigurationCapability = capabilities.workspace && capabilities.workspace.configuration;
+
         // this.initializeParams = params;
         this.initializeResult = {
             capabilities: {
                 textDocumentSync: TextDocumentSyncKind.Incremental,
                 // workspaceSymbolProvider: true,
                 documentSymbolProvider: true,
-
+                hoverProvider: true
             }
         };
 
@@ -51,8 +70,15 @@ export default class LspServer {
         return this.initializeResult;
     }
 
+    public async onGetConfiguration(configuration: OpxLspSettings) {
+        this.configuration = configuration;
+    }
+
     public async initialized(): Promise<void> {
-        // TODO: Register providers here
+        if (this.hasConfigurationCapability) {
+            this.client.register(DidChangeConfigurationNotification.type, undefined);
+        }
+
         this.activated();
     }
 
@@ -156,5 +182,56 @@ export default class LspServer {
         }
         
         return symbols;
+    }
+
+    public async hover(params: TextDocumentPositionParams): Promise<Hover | null> {
+        const path = params.textDocument.uri;
+        if (this.openedDocumentUris.has(path)) {
+            const document = this.openedDocumentUris.get(path);
+            const wordRange = document.getWordRangeAtPosition(params.position);
+            const word = document.getText(wordRange);
+
+            // Hover support for Environment object style accessors (e.g. FOO_AA_B_SCHWAG)
+            if (/_*([A-Z])+(_+[A-Z]+)+_*/.test(word)) {
+                const url: string = this.configuration.interfaceUrl + word;
+                const auth: request.AuthOptions = {
+                    user: this.configuration.interfaceUser,
+                    password: this.configuration.interfacePass,
+                    sendImmediately: false
+                };
+                return new Promise<Hover | null>(resolve => {
+                    // @ts-ignore response is declared but never read error
+                    request(url, { auth }, (error: any, response: request.Response, body: any) => {
+                        const value = "var x = \"" + word + "\".substr(0, 1);";
+
+                        if (error) {
+                            resolve(null);
+                        } else {
+                            resolve({
+                                range: wordRange,
+                                contents: {
+                                    language: "opxscript",
+                                    value
+                                }
+                            });
+                        }
+                    });
+                });
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public async didChangeConfiguration(params: DidChangeConfigurationParams) {
+        if (this.hasConfigurationCapability) {
+            this.configuration = <OpxLspSettings>(params.settings.ojs || this.defaultConfiguration);
+
+            if (this.configuration.interfaceUrl !== null && !this.configuration.interfaceUrl.endsWith("?")) {
+                this.configuration.interfaceUrl = this.configuration.interfaceUrl + "?";
+            }
+        }
     }
 }

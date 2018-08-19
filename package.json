@@ -57,24 +57,22 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Example configuration",
+			"title": "Ojs configuration",
 			"properties": {
-				"languageServerExample.maxNumberOfProblems": {
-					"scope": "resource",
-					"type": "number",
-					"default": 100,
-					"description": "Controls the maximum number of problems produced by the server."
-				},
-				"languageServerExample.trace.server": {
-					"scope": "window",
+				"ojs.interfaceUrl": {
 					"type": "string",
-					"enum": [
-						"off",
-						"messages",
-						"verbose"
-					],
-					"default": "off",
-					"description": "Traces the communication between VS Code and the language server."
+					"default": null,
+					"description": "Fetches environment data from this url, you need to have the opx_lsp plugin installed on planisware."
+				},
+				"ojs.interfaceUser": {
+					"type": "string",
+					"default": "",
+					"description": "User who has access to the opx_lsp rest interface on planisware."
+				},
+				"ojs.interfacePass": {
+					"type": "string",
+					"default": "",
+					"description": "Password of he user for the opx_lsp rest interface on planisware."
 				}
 			}
 		}

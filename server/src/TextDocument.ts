@@ -70,10 +70,10 @@ export class TextDocument {
         const lineText = lines[line];
         const character = Math.min(lineText.length - 1, Math.max(0, position.character));
         let startChar = character;
-        while (startChar > 0 && !/\s/.test(lineText.charAt(startChar - 1)))
+        while (startChar > 0 && !/\W/.test(lineText.charAt(startChar - 1)))
             --startChar;
         let endChar = character;
-        while (endChar < lineText.length - 1 && !/\s/.test(lineText.charAt(endChar)))
+        while (endChar < lineText.length - 1 && !/\W/.test(lineText.charAt(endChar)))
             ++endChar;
         if (startChar === endChar)
             return undefined;

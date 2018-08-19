@@ -44,7 +44,8 @@ export function activate(context: ExtensionContext) {
 		documentSelector: [ojsDocumentSelector],
 		synchronize: {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
-			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
+			fileEvents: workspace.createFileSystemWatcher('**/.clientrc'),
+			configurationSection: "ojs"
 		}
 	};
 

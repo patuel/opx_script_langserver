@@ -1,0 +1,54 @@
+/*
+ * Environment definition interface for the language server
+ *
+ * This REST interface will provide object definitions for hover support
+ */
+
+// TODO: Rename
+function Lsp_Mapper(sLabelAttribute, vsAttributePList) {
+    this.sLabelAttribute = sLabelAttribute;
+    this.vsAttributePList = vsAttributePList;
+}
+
+
+var HSOBJECTMAPPER = new HashTable("string");
+HSOBJECTMAPPER.set("ADDED_ATTRIBUTE", new Lsp_Mapper("LABEL", new Vector()));
+
+/**
+ * Converts any OpxEnironmentObject into a lsp readable object
+ */
+method lsp_toInterfaceObject on OpxEnvironmentObject() {
+    var oResult = new Undefined();
+
+    oResult.ONB = this.ONB;
+    oResult.ID = this.ID;
+    oResult.NAME = this.NAME;
+
+    var sClassName = this.CLASS.toString();
+    oResult.TYPE = sClassName.toUpperCase();
+
+    var oMapper = HSOBJECTMAPPER.get(sClassName);
+    if (oMapper instanceof Lsp_Mapper) {
+        // TODO: Do stuff with mapper
+    }
+
+    return oResult;
+}
+
+/**
+ * Searches for an environment object by name
+ * @param {string} sName Name of the environment object
+ * @return {any} The found object or undefined
+ */
+function lsp_getEnvDefinition(sName) {
+    var oFoundObject = "OpxEnvironmentObject".get(sName);
+    if (oFoundObject != undefined) {
+        return oFoundObject.lsp_toInterfaceObject();
+    }
+    return "sName: ~A ~A".format(sName, oFoundObject.toString());
+}
+
+/* Target URL:
+ * /opx_lsp?<name>
+ */
+rest.defineapi("opx_lsp", lsp_getEnvDefinition);
