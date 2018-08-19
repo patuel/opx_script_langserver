@@ -4,32 +4,93 @@
  * This REST interface will provide object definitions for hover support
  */
 
-// TODO: Rename
-function Lsp_Mapper(sLabelAttribute, vsAttributePList) {
+function Lsp_IInterfaceResult() {}
+
+function Lsp_Mapper(sLabelAttribute, vsAttributeList) {
     this.sLabelAttribute = sLabelAttribute;
-    this.vsAttributePList = vsAttributePList;
+    this.vsAttributeList = vsAttributeList;
 }
 
+method lsp_map on Lsp_Mapper(result, obj) {
+    result.LABEL = obj.get(this.sLabelAttribute);
+    for (var sAttribute in this.vsAttributeList) {
+        result.set(sAttribute, obj.get(sAttribute));
+    }
+}
+
+function lsp_searchObject(sName) {
+    var vxResults = new Vector();
+
+    for (var obj in "OpxAdditionalAttribute".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    for (var obj in "OpxBreakdownStructure".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    for (var obj in "OpxAttributeType".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    for (var obj in "OpxDataManagementRule".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    // for (var obj in "OpxDocumentField".findClass() where obj.NAME.search(sName) != false) {
+    //     vxResults.push(obj);
+    // }
+    // for (var obj in "OpxDocumentStorage".findClass() where obj.NAME.search(sName) != false) {
+    //     vxResults.push(obj);
+    // }
+    for (var obj in "OpxNamedFormula".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    for (var obj in "OpxPersistentTable".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    for (var obj in "OpxRelationAttribute".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    for (var obj in "OpxSymbolicField".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    // for (var obj in "OpxTableKey".findClass() where obj.NAME.search(sName) != false) {
+    //     vxResults.push(obj);
+    // }
+    for (var obj in "OpxTemporaryTable".findClass() where obj.NAME.search(sName) != false) {
+        vxResults.push(obj);
+    }
+    // for (var obj in "OpxVirtualConsolidationClass".findClass() where obj.NAME.search(sName) != false) {
+    //     vxResults.push(obj);
+    // }
+
+    return vxResults;
+}
 
 var HSOBJECTMAPPER = new HashTable("string");
-HSOBJECTMAPPER.set("ADDED_ATTRIBUTE", new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("ADDED_ATTRIBUTE",       new Lsp_Mapper("LABEL", new Vector("ENTITY", "TYPE")));
+HSOBJECTMAPPER.set("BREAKDOWN_STRUCTURE",   new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("NAT",                   new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("DATA_CONSISTENCY_RULE", new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("FORMULA",               new Lsp_Mapper("LABEL", new Vector("ENTITY", "VALUE", "TYPE")));
+HSOBJECTMAPPER.set("PERMANENT_TABLE",       new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("ATTRIBUTE_RELATION",    new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("SYMBOLIC_FIELD",        new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("TEMP_TABLE",            new Lsp_Mapper("LABEL", new Vector()));
 
 /**
  * Converts any OpxEnironmentObject into a lsp readable object
  */
-method lsp_toInterfaceObject on OpxEnvironmentObject() {
-    var oResult = new Undefined();
+function lsp_toInterfaceObject() {
+    var oResult = new Lsp_IInterfaceResult();
 
     oResult.ONB = this.ONB;
-    oResult.ID = this.ID;
+    // oResult.ID = this.ID;
     oResult.NAME = this.NAME;
 
     var sClassName = this.CLASS.toString();
-    oResult.TYPE = sClassName.toUpperCase();
+    oResult.CLASS = sClassName.toUpperCase();
 
     var oMapper = HSOBJECTMAPPER.get(sClassName);
     if (oMapper instanceof Lsp_Mapper) {
-        // TODO: Do stuff with mapper
+        oMapper.lsp_map(oResult, this);
     }
 
     return oResult;
@@ -41,11 +102,17 @@ method lsp_toInterfaceObject on OpxEnvironmentObject() {
  * @return {any} The found object or undefined
  */
 function lsp_getEnvDefinition(sName) {
-    var oFoundObject = "OpxEnvironmentObject".get(sName);
-    if (oFoundObject != undefined) {
-        return oFoundObject.lsp_toInterfaceObject();
+    try {
+        var voFoundObjects = lsp_searchObject(sName);
+        if (voFoundObjects.length > 0) {
+            for (var oFoundObject in voFoundObjects) {
+                return oFoundObject.lsp_toInterfaceObject();
+            }
+        }
+    } catch (error e) {
+        return (e);
     }
-    return "sName: ~A ~A".format(sName, oFoundObject.toString());
+    return null;
 }
 
 /* Target URL:

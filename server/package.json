@@ -13,8 +13,10 @@
 	},
 	"scripts": {},
 	"dependencies": {
+		"@types/sprintf": "^0.1.0",
 		"commander": "^2.17.1",
 		"request": "^2.88.0",
+		"sprintf": "^0.1.5",
 		"vscode": "^1.1.18",
 		"vscode-languageserver": "^4.1.3"
 	},

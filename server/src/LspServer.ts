@@ -24,6 +24,7 @@ import Tokenizer from "./ojs/Tokenizer";
 import { Token } from "./ojs/Token";
 import * as request from "request";
 import { OpxLspSettings } from "./settings/OpxLspSettings";
+import { sprintf } from "sprintf";
 
 export default class LspServer {
     //private initializeParams: InitializeParams;
@@ -202,17 +203,27 @@ export default class LspServer {
                 return new Promise<Hover | null>(resolve => {
                     // @ts-ignore response is declared but never read error
                     request(url, { auth }, (error: any, response: request.Response, body: any) => {
-                        const value = "var x = \"" + word + "\".substr(0, 1);";
+                        const value = body;
 
                         if (error) {
                             resolve(null);
                         } else {
+                            const result = JSON.parse(value);
+                            let code = "";
+                            let language = "opxscript";
+
+                            switch (result.CLASS) {
+                                case "ADDED_ATTRIBUTE":
+                                    code = sprintf("(%s): %s", result.CLASS, result.TYPE)
+                                    break;
+                                case "FORMULA":
+                                    code = result.VALUE;
+                                    break;
+                            }
+                            
                             resolve({
                                 range: wordRange,
-                                contents: {
-                                    language: "opxscript",
-                                    value
-                                }
+                                contents: sprintf("```%s\r\n%s\r\n```\r\n\r\n%s", language, code, result.LABEL)
                             });
                         }
                     });
