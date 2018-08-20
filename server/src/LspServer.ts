@@ -203,12 +203,10 @@ export default class LspServer {
                 return new Promise<Hover | null>(resolve => {
                     // @ts-ignore response is declared but never read error
                     request(url, { auth }, (error: any, response: request.Response, body: any) => {
-                        const value = body;
-
-                        if (error) {
+                        if (error || !/[\[\{]/.test(body.substr(0,1))) {
                             resolve(null);
                         } else {
-                            const result = JSON.parse(value);
+                            const result = JSON.parse(body);
                             let code = "";
                             let language = "opxscript";
 
@@ -216,14 +214,44 @@ export default class LspServer {
                                 case "ADDED_ATTRIBUTE":
                                     code = sprintf("(%s): %s", result.CLASS, result.TYPE)
                                     break;
+                                case "BREAKDOWN_STRUCTURE":
+                                    break;
+                                case "NAT": // Attribute Type
+
+                                    var content = "";
+                                    for (var key in result.POSSIBLE_VALUES) {
+                                        if (content.length > 0) {
+                                            content += ",\r\n";
+                                        }
+                                        var value = result.POSSIBLE_VALUES[key];
+                                        content += sprintf("  \"%s\": \"%s\"", key, value);
+                                    }
+
+                                    language = "json";
+                                    code = sprintf("Possible values:\r\n{\r\n%s\r\n}", content);
+                                    break;
+                                case "DATA_CONSISTENCY_RULE":
+                                    break;
                                 case "FORMULA":
                                     code = result.VALUE;
+                                    break;
+                                case "PERMANENT_TABLE":
+                                    break;
+                                case "ATTRIBUTE_RELATION":
+                                    break;
+                                case "SYMBOLIC_FIELD":
+                                    break;
+                                case "TEMP_TABLE":
                                     break;
                             }
                             
                             resolve({
                                 range: wordRange,
-                                contents: sprintf("```%s\r\n%s\r\n```\r\n\r\n%s", language, code, result.LABEL)
+                                contents: sprintf(
+                                    "```%s\r\n%s\r\n```\r\n\r\n%s",
+                                    language,
+                                    code,
+                                    result.LABEL)
                             });
                         }
                     });
@@ -237,7 +265,7 @@ export default class LspServer {
     }
 
     public async didChangeConfiguration(params: DidChangeConfigurationParams) {
-        if (this.hasConfigurationCapability) {
+        if (this.hasConfigurationCapability && params.settings) {
             this.configuration = <OpxLspSettings>(params.settings.ojs || this.defaultConfiguration);
 
             if (this.configuration.interfaceUrl !== null && !this.configuration.interfaceUrl.endsWith("?")) {

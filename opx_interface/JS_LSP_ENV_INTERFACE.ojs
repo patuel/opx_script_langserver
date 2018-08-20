@@ -6,16 +6,33 @@
 
 function Lsp_IInterfaceResult() {}
 
-function Lsp_Mapper(sLabelAttribute, vsAttributeList) {
+function Lsp_Mapper(sLabelAttribute, vxAttributeList) {
     this.sLabelAttribute = sLabelAttribute;
-    this.vsAttributeList = vsAttributeList;
+    this.vxAttributeList = vxAttributeList;
 }
 
 method lsp_map on Lsp_Mapper(result, obj) {
     result.LABEL = obj.get(this.sLabelAttribute);
-    for (var sAttribute in this.vsAttributeList) {
-        result.set(sAttribute, obj.get(sAttribute));
+    for (var xAttribute in this.vxAttributeList) {
+        if (xAttribute instanceof function) {
+            xAttribute.call(this, result, obj);
+        } else {
+            result.set(xAttribute, obj.get(xAttribute));
+        }
     }
+}
+
+/**
+ * Mapper function for Attribute type possible values
+ */
+method lsp_NatMapper on Lsp_Mapper(result, obj) {
+    var hsValueMap = new HashTable("string");
+
+    for (var oPossibleValue in obj.get("POSSIBLE_VALUES")) {
+        hsValueMap.set(oPossibleValue.VALUE, oPossibleValue.get("COMMENT"));
+    }
+
+    result.set("POSSIBLE_VALUES", hsValueMap);
 }
 
 function lsp_searchObject(sName) {
@@ -67,13 +84,22 @@ function lsp_searchObject(sName) {
 var HSOBJECTMAPPER = new HashTable("string");
 HSOBJECTMAPPER.set("ADDED_ATTRIBUTE",       new Lsp_Mapper("LABEL", new Vector("ENTITY", "TYPE")));
 HSOBJECTMAPPER.set("BREAKDOWN_STRUCTURE",   new Lsp_Mapper("LABEL", new Vector()));
-HSOBJECTMAPPER.set("NAT",                   new Lsp_Mapper("LABEL", new Vector()));
-HSOBJECTMAPPER.set("DATA_CONSISTENCY_RULE", new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("NAT",                   new Lsp_Mapper("LABEL", new Vector(lsp_NatMapper.closure())));
+HSOBJECTMAPPER.set("DATA_CONSISTENCY_RULE", new Lsp_Mapper("LABEL", new Vector("COMMENT")));
 HSOBJECTMAPPER.set("FORMULA",               new Lsp_Mapper("LABEL", new Vector("ENTITY", "VALUE", "TYPE")));
-HSOBJECTMAPPER.set("PERMANENT_TABLE",       new Lsp_Mapper("LABEL", new Vector()));
-HSOBJECTMAPPER.set("ATTRIBUTE_RELATION",    new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("PERMANENT_TABLE",       new Lsp_Mapper("LABEL", new Vector("DESC")));
+HSOBJECTMAPPER.set("ATTRIBUTE_RELATION",    new Lsp_Mapper("LABEL", new Vector(
+    "ENTITIY",
+    "TYPE",
+    "RELATION_NAME",
+    "OPTINOAL",
+    "SAVE_WITH",
+    "TREE_GROUP_POSSIBLE",
+    "ALLOW_EXTERNAL_LINKS",
+    "USE_FOR_INDEX"
+)));
 HSOBJECTMAPPER.set("SYMBOLIC_FIELD",        new Lsp_Mapper("LABEL", new Vector()));
-HSOBJECTMAPPER.set("TEMP_TABLE",            new Lsp_Mapper("LABEL", new Vector()));
+HSOBJECTMAPPER.set("TEMP_TABLE",            new Lsp_Mapper("LABEL", new Vector("DESC")));
 
 /**
  * Converts any OpxEnironmentObject into a lsp readable object
