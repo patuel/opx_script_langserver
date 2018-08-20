@@ -64,7 +64,7 @@ export class TextDocument {
         return this.text.substr(offset, length);
     }
 
-    getWordRangeAtPosition(position: lsp.Position): lsp.Range | undefined {
+    getWordAtPosition(position: lsp.Position): lsp.Range | undefined {
         const lines = this.lines;
         const line = Math.min(lines.length - 1, Math.max(0, position.line));
         const lineText = lines[line];
@@ -74,6 +74,23 @@ export class TextDocument {
             --startChar;
         let endChar = character;
         while (endChar < lineText.length - 1 && !/\W/.test(lineText.charAt(endChar)))
+            ++endChar;
+        if (startChar === endChar)
+            return undefined;
+        else
+            return lsp.Range.create(line, startChar, line, endChar);
+    }
+
+    getWordRangeAtPosition(position: lsp.Position): lsp.Range | undefined {
+        const lines = this.lines;
+        const line = Math.min(lines.length - 1, Math.max(0, position.line));
+        const lineText = lines[line];
+        const character = Math.min(lineText.length - 1, Math.max(0, position.character));
+        let startChar = character;
+        while (startChar > 0 && !/\s/.test(lineText.charAt(startChar - 1)))
+            --startChar;
+        let endChar = character;
+        while (endChar < lineText.length - 1 && !/\s/.test(lineText.charAt(endChar)))
             ++endChar;
         if (startChar === endChar)
             return undefined;

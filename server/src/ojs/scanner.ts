@@ -1,7 +1,0 @@
-/* Scanner 
- *  
- */
-
-class Scanner {
-    
-}
